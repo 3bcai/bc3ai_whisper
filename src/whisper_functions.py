@@ -37,7 +37,7 @@ def detect_language(audio_file_path, args, model):
         mel = whisper.log_mel_spectrogram(audio).to(args["device"])
         _, probs = model.detect_language(mel)
         # only include languages that can be translated
-        probs = {k: master_probs[k] for k in master_probs.keys() if k in lang_codes.keys()}
+        probs = {k: probs[k] for k in probs.keys() if k in lang_codes.keys()}
         language = max(probs, key=probs.get)
         
     else:
