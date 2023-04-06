@@ -106,9 +106,21 @@ def translate_string(og_result, args, language):
     print(f"Translating from {language} to {args['translation_lang']}")
     if not og_result:
         return ""
-    result = translator.translate(text=og_result, dest=args['translation_lang'], src=language)
-    result = result.text
-    return result
+    
+    trans_strs = [og_result]
+    while len(trans_strs[-1]) > 12000:
+        new_text = []
+
+        for elem in trans_strs:
+            edge = int(len(elem)/2)
+            new_text.append(elem[0:edge])
+            new_text.append(elem[edge:])
+        trans_strs = new_text
+    translation = ""
+    for i in trans_strs:
+        result = translator.translate(text=i, dest=args['translation_lang'], src=language)
+        translation += result.text
+    return translation
 
 
 
