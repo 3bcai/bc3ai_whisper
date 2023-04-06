@@ -24,11 +24,11 @@ def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
 
 
 
-def detect_language(audio_file_path, args, model, ultra=True):
+def detect_language(audio_file_path, args, model):
 
     audio_file = mp.AudioFileClip(audio_file_path)
 
-    if ultra == False or audio_file.duration < 30:
+    if args["ultra_off"] == True or audio_file.duration < 30:
         audio = whisper.load_audio(audio_file_path)
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(args["device"])
