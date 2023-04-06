@@ -3,6 +3,7 @@ from googletrans import Translator
 import mimetypes
 import os
 import moviepy.editor as mp
+import json
 
 translator = Translator()
 
@@ -27,14 +28,18 @@ def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
 def detect_language(audio_file_path, args, model):
 
     audio_file = mp.AudioFileClip(audio_file_path)
+    with open('lang_codes.json') as user_file:
+        lang_codes = json.load(user_file)
 
     if args["ultra_off"] == True or audio_file.duration < 30:
         audio = whisper.load_audio(audio_file_path)
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(args["device"])
         _, probs = model.detect_language(mel)
+        # only include languages that can be translated
+        probs = {k: master_probs[k] for k in master_probs.keys() if k in lang_codes.keys()}
         language = max(probs, key=probs.get)
-
+        
     else:
         os.makedirs('temp_audio', exist_ok=True)
         n=30
@@ -42,7 +47,6 @@ def detect_language(audio_file_path, args, model):
         j = n
         master_probs = {}
         
-
         while j <= audio_file.duration:
             clips = audio_file.subclip(t_start=i, t_end=j)
             clip_path = f'temp_audio/{i}_{j}.wav'
@@ -60,8 +64,13 @@ def detect_language(audio_file_path, args, model):
             j += n
             os.remove(clip_path)
 
+        # only include languages that can be translated
+        master_probs = {k: master_probs[k] for k in master_probs.keys() if k in lang_codes.keys()}
         language = max(master_probs, key=master_probs.get)
+
     return language
+
+
 
 def transcribe_file(file, args, model):
     """takes in a audio or video file, returns a og_lang transcription string, and the og_lang"""
@@ -92,12 +101,13 @@ def transcribe_file(file, args, model):
 
 
 
-def translate_string(og_result, args):
+def translate_string(og_result, args, language):
     """takes in a string, returns a transcription string in the given language"""
-
-    result = translator.translate(text=og_result, dest=args['translation_lang'])
+    print(f"Translating from {language} to {args['translation_lang']}")
+    if not og_result:
+        return ""
+    result = translator.translate(text=og_result, dest=args['translation_lang'], src=language)
     result = result.text
-
     return result
 
 
@@ -109,7 +119,7 @@ def process_file(file_path, args, model):
     if args["translation_lang"] == og_lang:
         translation_result = og_result
     else:
-        translation_result = translate_string(og_result, args)
+        translation_result = translate_string(og_result, args, og_lang)
 
     trans_lang = args["translation_lang"]
     print(f"TRANS LANG: {trans_lang}, TRANS RESULT: {translation_result}")

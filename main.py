@@ -19,7 +19,7 @@ def arg_parser():
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
     parser.add_argument("--translation-lang", default="en", help="language to translate to")
     parser.add_argument("--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
-    parser.add_argument("--ultra-off", action='store_false',default="auto", help="Use this arg to use the faster translation")
+    parser.add_argument("--ultra-off", action='store_true',help="Use this arg to use the faster translation")
 
     args = parser.parse_args().__dict__
 
@@ -30,7 +30,7 @@ def arg_parser():
 if __name__ == "__main__":
     mimetypes.init()
     args = arg_parser()
-
+    os.makedirs("output", exist_ok=True)
 
     # if dir is a continuation
     if os.path.basename(args['dir']) in os.listdir("output"):
