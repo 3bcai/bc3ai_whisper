@@ -1,13 +1,13 @@
 import whisper
-from googletrans import Translator
+from deep_translator import DeeplTranslator
 import mimetypes
 import os
 import moviepy.editor as mp
 import json
-
-translator = Translator()
-
-
+import time
+from dotenv import load_dotenv
+load_dotenv()
+DEEPL_KEY = os.getenv("DEEPL_KEY")
 
 def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
     '''
@@ -108,7 +108,7 @@ def translate_string(og_result, args, language):
         return ""
     
     trans_strs = [og_result]
-    while len(trans_strs[-1]) > 12000:
+    while len(trans_strs[-1]) > 4500:
         new_text = []
 
         for elem in trans_strs:
@@ -117,9 +117,19 @@ def translate_string(og_result, args, language):
             new_text.append(elem[edge:])
         trans_strs = new_text
     translation = ""
+
     for i in trans_strs:
-        result = translator.translate(text=i, dest=args['translation_lang'], src=language)
-        translation += result.text
+        while True:
+            try:
+                time.sleep(2)
+                result = DeeplTranslator(api_key=DEEPL_KEY, source=language, target=args['translation_lang'], use_free_api=True).translate(i)
+                #result = translator.translate(text=i, dest=args['translation_lang'], src=language)
+                break
+            except Exception as e:
+                print(e)
+                time.sleep(5)
+
+        translation += result
     return translation
 
 
