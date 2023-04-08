@@ -1,5 +1,5 @@
 import whisper
-from deep_translator import DeeplTranslator
+import deepl
 import mimetypes
 import os
 import moviepy.editor as mp
@@ -8,6 +8,9 @@ import time
 from dotenv import load_dotenv
 load_dotenv()
 DEEPL_KEY = os.getenv("DEEPL_KEY")
+translator = deepl.Translator(DEEPL_KEY)
+
+
 
 def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
     '''
@@ -28,16 +31,13 @@ def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
 def detect_language(audio_file_path, args, model):
 
     audio_file = mp.AudioFileClip(audio_file_path)
-    with open('lang_codes.json') as user_file:
-        lang_codes = json.load(user_file)
 
     if args["ultra_off"] == True or audio_file.duration < 30:
         audio = whisper.load_audio(audio_file_path)
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(args["device"])
         _, probs = model.detect_language(mel)
-        # only include languages that can be translated
-        probs = {k: probs[k] for k in probs.keys() if k in lang_codes.keys()}
+
         language = max(probs, key=probs.get)
         
     else:
@@ -64,10 +64,9 @@ def detect_language(audio_file_path, args, model):
             j += n
             os.remove(clip_path)
 
-        # only include languages that can be translated
-        master_probs = {k: master_probs[k] for k in master_probs.keys() if k in lang_codes.keys()}
-        language = max(master_probs, key=master_probs.get)
 
+        language = max(master_probs, key=master_probs.get)
+        print("Detected language: ", language)
     return language
 
 
@@ -108,7 +107,7 @@ def translate_string(og_result, args, language):
         return ""
     
     trans_strs = [og_result]
-    while len(trans_strs[-1]) > 4500:
+    while len(trans_strs[-1]) > 2500:
         new_text = []
 
         for elem in trans_strs:
@@ -116,20 +115,12 @@ def translate_string(og_result, args, language):
             new_text.append(elem[0:edge])
             new_text.append(elem[edge:])
         trans_strs = new_text
+
     translation = ""
-
     for i in trans_strs:
-        while True:
-            try:
-                time.sleep(2)
-                result = DeeplTranslator(api_key=DEEPL_KEY, source=language, target=args['translation_lang'], use_free_api=True).translate(i)
-                #result = translator.translate(text=i, dest=args['translation_lang'], src=language)
-                break
-            except Exception as e:
-                print(e)
-                time.sleep(5)
-
-        translation += result
+        result = translator.translate_text(i, target_lang=args['translation_lang'])
+        #result = translator.translate(text=i, dest=args['translation_lang'], src=language)
+        translation += result.text
     return translation
 
 

@@ -7,8 +7,14 @@ import json
 import sys
 import mimetypes
 import whisper
-import googletrans
+import deepl
 from src.whisper_functions import process_file
+from dotenv import load_dotenv
+
+load_dotenv()
+DEEPL_KEY = os.getenv("DEEPL_KEY")
+translator = deepl.Translator(DEEPL_KEY)
+
 
 #TODO: TIMESTAMPS???
 
@@ -17,7 +23,7 @@ def arg_parser():
     parser.add_argument("dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements")
     parser.add_argument("--model", default="large-v2", help="name of the Whisper model to use")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
-    parser.add_argument("--translation-lang", default="en", help="language to translate to")
+    parser.add_argument("--translation-lang", default="en", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
     parser.add_argument("--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
     parser.add_argument("--ultra-off", action='store_true',help="Use this arg to use the faster translation")
     parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
@@ -73,8 +79,8 @@ if __name__ == "__main__":
         print(f"amount of files to process: {len(files)}")
 
     assert len(files) > 0
-    assert args["translation_lang"] in googletrans.LANGUAGES.keys(), f"TRANSLATED LANGUAGE NOT IN LANGUAGE CODES. MUST BE: {googletrans.LANGUAGES.keys()}"
-    assert args["force_og_lang"] in googletrans.LANGUAGES.keys() or args["force_og_lang"] == 'auto', f"FORCED ORIGINAL LANGUAGE NOT IN LANGUAGE CODES. MUST BE: {googletrans.LANGUAGES.keys()}"
+    assert args["translation_lang"] in [lang.code for lang in translator.get_target_languages()],f"TRANSLATION LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_target_languages()]}"
+    assert args["force_og_lang"] in [lang.code for lang in translator.get_source_languages()] or args["force_og_lang"] == 'auto', f"FORCED ORIGINAL LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_source_languages()]}"
 
     model = whisper.load_model(args['model'], device=args['device'])
 
