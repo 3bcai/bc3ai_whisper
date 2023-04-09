@@ -23,7 +23,7 @@ def arg_parser():
     parser.add_argument("dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements")
     parser.add_argument("--model", default="large-v2", help="name of the Whisper model to use")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
-    parser.add_argument("--translation-lang", default="en", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
+    parser.add_argument("--translation-lang", default="EN-US", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
     parser.add_argument("--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
     parser.add_argument("--ultra-off", action='store_true',help="Use this arg to use the faster translation")
     parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])

@@ -78,11 +78,15 @@ def transcribe_file(file, args, model):
     if mimetypes.guess_type(file)[0].split('/')[0] in ['audio']:
         audio_file = file
     elif mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
+
         audio_file = os.path.basename(file)
         audio_file = f"{os.path.splitext(audio_file)[0]}.wav"
         clip = mp.VideoFileClip(file)
         if clip.audio is not None:
             clip.audio.write_audiofile(audio_file, logger=None)
+        else:
+            result, og_lang = "", ""
+            return result, og_lang
     else:
         #ERROR. NO NON VIDEO OR AUDIO SHOULD HAVE MADE IT HERE.
         raise AssertionError()
@@ -96,6 +100,10 @@ def transcribe_file(file, args, model):
     options['language'] = og_lang
 
     result = whisper.transcribe(model, audio_file, verbose=False, **options)
+
+    if mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
+        os.remove(audio_file)
+
     return result['text'], og_lang
 
 
