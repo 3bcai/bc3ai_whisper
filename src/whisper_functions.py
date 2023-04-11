@@ -3,6 +3,7 @@ import deepl
 import mimetypes
 import os
 import moviepy.editor as mp
+from datetime import timedelta
 import json
 import time
 from dotenv import load_dotenv
@@ -81,7 +82,13 @@ def transcribe_file(file, args, model):
 
         audio_file = os.path.basename(file)
         audio_file = f"{os.path.splitext(audio_file)[0]}.wav"
-        clip = mp.VideoFileClip(file)
+        try:
+            clip = mp.VideoFileClip(file)
+        except Exception as e:
+            print(e)
+            result, og_lang = "CORRUPT VIDEO FILE", "CORRUPT VIDEO FILE"
+            return result, og_lang
+        
         if clip.audio is not None:
             clip.audio.write_audiofile(audio_file, logger=None)
         else:
@@ -101,50 +108,61 @@ def transcribe_file(file, args, model):
 
     result = whisper.transcribe(model, audio_file, verbose=False, **options)
 
+    if args["timestamps"] == True:
+        result['timestamp_og_text'] = " ". join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments']])
+
     if mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
         os.remove(audio_file)
 
-    return result['text'], og_lang
+    return result, og_lang
 
 
 
 def translate_string(og_result, args, language):
     """takes in a string, returns a transcription string in the given language"""
     print(f"Translating from {language} to {args['translation_lang']}")
-    if not og_result:
+    if not og_result['text']:
         return ""
     
-    trans_strs = [og_result]
-    while len(trans_strs[-1]) > 2500:
-        new_text = []
+    if args["timestamps"] == False:
+        trans_strs = [og_result["text"]]
+        while len(trans_strs[-1]) > 550:
+            new_text = []
 
-        for elem in trans_strs:
-            edge = int(len(elem)/2)
-            new_text.append(elem[0:edge])
-            new_text.append(elem[edge:])
-        trans_strs = new_text
+            for elem in trans_strs:
+                edge = int(len(elem)/2)
+                new_text.append(elem[0:edge])
+                new_text.append(elem[edge:])
+            trans_strs = new_text
+    else:
+        trans_strs = [[str(timedelta(seconds=round(d['start']))), d['text']] for d in og_result['segments']]
 
     translation = ""
     for i in trans_strs:
-        result = translator.translate_text(i, target_lang=args['translation_lang'])
-        #result = translator.translate(text=i, dest=args['translation_lang'], src=language)
-        translation += result.text
+        #time.sleep(2)
+        if args["timestamps"] == False:
+            result = translator.translate_text(i, target_lang=args['translation_lang'])
+            translation += result.text
+        else:
+            result = translator.translate_text(i[1], target_lang=args['translation_lang'])
+            translation += (i[0] + result.text + '\n')
     return translation
 
 
 
 def process_file(file_path, args, model):
     og_result, og_lang = transcribe_file(file_path, args, model)
-    print(f"OG LANG: {og_lang}, OG LANG RESULT: {og_result}")
+    print(f"OG LANG: {og_lang}, OG LANG RESULT: {og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']}")
 
     if args["translation_lang"] == og_lang:
-        translation_result = og_result
+        translation_result = og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']
     else:
         translation_result = translate_string(og_result, args, og_lang)
 
     trans_lang = args["translation_lang"]
     print(f"TRANS LANG: {trans_lang}, TRANS RESULT: {translation_result}")
 
+    og_result = og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']
     df_row = format_data(file_path, trans_lang, og_result, og_lang, translation_result)
     return df_row
     
