@@ -67,6 +67,9 @@ def detect_language(audio_file_path, args, model):
 
 
         language = max(master_probs, key=master_probs.get)
+        language = language.upper()
+        if language == "EN":
+            language = "EN-US"
         print("Detected language: ", language)
     return language
 
@@ -109,7 +112,7 @@ def transcribe_file(file, args, model):
     result = whisper.transcribe(model, audio_file, verbose=False, **options)
 
     if args["timestamps"] == True:
-        result['timestamp_og_text'] = " ". join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments']])
+        result['timestamp_og_text'] = " ". join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments'] if d['text']])
 
     if mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
         os.remove(audio_file)
@@ -139,11 +142,14 @@ def translate_string(og_result, args, language):
 
     translation = ""
     for i in trans_strs:
+
         #time.sleep(2)
         if args["timestamps"] == False:
             result = translator.translate_text(i, target_lang=args['translation_lang'])
             translation += result.text
         else:
+            if not i[1]:
+                continue
             result = translator.translate_text(i[1], target_lang=args['translation_lang'])
             translation += (i[0] + result.text + '\n')
     return translation
