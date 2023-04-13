@@ -82,7 +82,6 @@ def transcribe_file(file, args, model):
     if mimetypes.guess_type(file)[0].split('/')[0] in ['audio']:
         audio_file = file
     elif mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
-
         audio_file = os.path.basename(file)
         audio_file = f"{os.path.splitext(audio_file)[0]}.wav"
         try:
