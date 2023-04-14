@@ -78,7 +78,7 @@ if __name__ == "__main__":
         files = [file for file in files if mimetypes.guess_type(file)[0] != None if mimetypes.guess_type(file)[0].split('/')[0] in ['audio', 'video']]
         print(f"amount of files to process: {len(files)}")
 
-    assert len(files) > 0
+    assert len(files) > 0, "No Videos To be Processed"
     assert args["translation_lang"] in [lang.code for lang in translator.get_target_languages()],f"TRANSLATION LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_target_languages()]}"
     assert args["force_og_lang"] in [lang.code for lang in translator.get_source_languages()] or args["force_og_lang"] == 'auto', f"FORCED ORIGINAL LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_source_languages()]}"
     

@@ -172,7 +172,7 @@ def translate_string(og_result, args, language):
     else:
         trans_strs = [[str(timedelta(seconds=round(d['start']))), d['text']] for d in og_result['segments']]
 
-    translation = {}
+    translation = {} if args["output_format"] == 'json' else ""
     for i in trans_strs:
         if not i[1]:
             continue
@@ -184,11 +184,11 @@ def translate_string(og_result, args, language):
         else:
             if args["output_format"] == 'json':
                 translation[i[0]] = result.text
-                return translation
+                
             elif args["output_format"] == 'csv':
-                if not translation: translation[0] = ""
-                translation[0] += (i[0] + result.text + '\n')
-                return translation[0]
+                translation =  translation + i[0] + ': ' + result.text + '\n'
+
+    return translation
 
 
 
