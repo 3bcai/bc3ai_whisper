@@ -19,7 +19,7 @@ NEED .ENV WITH:
  - DEEPL_API_DOMAIN
 
 ALL ARGUEMENTS:
-
+```
 - "dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements"
  - "--model", default="large-v2", help="name of the Whisper model to use"
  - "--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference"
@@ -29,7 +29,7 @@ ALL ARGUEMENTS:
  - '--timestamps',action='store_true',help="output timestamps in the resulting csv")
  - '--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
  - '--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
-
+```
 If using the function you can use them when you call the function. Example:
 ```
 from transcription import BC3AI_transcribe
