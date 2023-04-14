@@ -142,7 +142,7 @@ def transcribe_file(file, args, model):
 
     if args["timestamps"] == True:
         if args["output_format"] == 'json':
-            result['timestamp_og_text'] ={str(timedelta(seconds=round(d['start']))): {d['text']} for d in result['segments'] if d['text']}
+            result['timestamp_og_text'] ={str(timedelta(seconds=round(d['start']))): d['text'] for d in result['segments'] if d['text']}
         elif args["output_format"] == 'csv':
             result['timestamp_og_text'] = " ".join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments'] if d['text']])
 
