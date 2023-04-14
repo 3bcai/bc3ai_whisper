@@ -35,3 +35,4 @@ If using the function you can use them when you call the function. Example:
 from transcription import BC3AI_transcribe
 
 results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4", force_og_lang="ZH")
+```
