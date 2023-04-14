@@ -27,31 +27,11 @@ def arg_parser():
     parser.add_argument("--ultra-off", action='store_true',help="Use this arg to use the faster translation")
     parser.add_argument('--timestamps',action='store_true',help="output timestamps in the resulting csv")
     parser.add_argument('--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
-    parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
+    parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default="csv")
     
     args = parser.parse_args().__dict__
     return args
     
-
-
-def BC3AI_transcribe(file_path, model="large-v2", device='cuda', 
-                     translation_lang="EN-US", force_og_lang='auto',ultra_off=False, timestamps=True):
-    
-    assert device in ['cuda', 'cpu']
-    assert model in whisper.available_models()
-    assert translation_lang in [lang.code for lang in translator.get_target_languages()],f"TRANSLATION LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_target_languages()]}"
-    assert force_og_lang in [lang.code for lang in translator.get_source_languages()] or force_og_lang == 'auto', f"FORCED ORIGINAL LANGUAGE NOT IN LANGUAGE CODES. MUST BE:\n{[lang.code for lang in translator.get_source_languages()]}"
-    assert mimetypes.guess_type(file_path)[0].split('/')[0] in ['audio', 'video']
-
-    args = {
-        "dir": file_path, "model": model, "device": device, "translation_lang": translation_lang,
-        "force_og_lang": force_og_lang, "ultra_off":ultra_off, "timestamps": timestamps, "confidence-scores": False}
-    
-    model = whisper.load_model(args['model'], device=args['device'])
-
-    result = process_file(file_path, args, model)
-    return result[0]
-
 
 
 if __name__ == "__main__":

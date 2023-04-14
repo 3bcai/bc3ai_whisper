@@ -12,7 +12,7 @@ DEEPL_KEY = os.getenv("DEEPL_KEY")
 translator = deepl.Translator(DEEPL_KEY)
 
 
-def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
+def format_data(args, file_path, trans_lang, og_result, og_lang, translation_result):
     '''
     THIS WILL CHANGE TO FORMAT INTO CSV FORMAT
     '''
@@ -24,7 +24,7 @@ def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
     output['Translated Language'] = trans_lang
     output['Translated Transcription'] = translation_result
     output['Original Transcription'] = og_result
-    return [output]
+    return output
 
 
 
@@ -66,10 +66,11 @@ def detect_language(audio_file_path, args, model):
 
 
         language = max(master_probs, key=master_probs.get)
-        language = language.upper()
-        if language == "EN":
-            language = "EN-US"
-        print("Detected language: ", language)
+    language = language.upper()
+
+    if language == "EN":
+        language = "EN-US"
+    print("Detected language: ", language)
     return language
 
 
@@ -103,9 +104,10 @@ def transcribe_file(file, args, model):
         og_lang = detect_language(audio_file, args, model)
     else:
         og_lang = args['force_og_lang']
+    
 
     options = {}
-    options['language'] = og_lang
+    options['language'] = "en" if og_lang == "EN-US" else og_lang
 
     # SPLIT AUDIO 
     mp_audio_file = mp.AudioFileClip(audio_file)
@@ -115,7 +117,7 @@ def transcribe_file(file, args, model):
     j = n
     result = {'text': '', 'segments': [], 'language': []}
     if mp_audio_file.duration < n:
-        result = whisper.transcribe(model, mp_audio_file, verbose=False, **options)
+        result = whisper.transcribe(model, audio_file, verbose=False, **options)
     else:
         while j <= mp_audio_file.duration:
             clips = mp_audio_file.subclip(t_start=i, t_end=j)
@@ -139,7 +141,10 @@ def transcribe_file(file, args, model):
             os.remove(clip_path)
 
     if args["timestamps"] == True:
-        result['timestamp_og_text'] = " ". join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments'] if d['text']])
+        if args["output_format"] == 'json':
+            result['timestamp_og_text'] ={str(timedelta(seconds=round(d['start']))): {d['text']} for d in result['segments'] if d['text']}
+        elif args["output_format"] == 'csv':
+            result['timestamp_og_text'] = " ".join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments'] if d['text']])
 
     if mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
         os.remove(audio_file)
@@ -165,21 +170,25 @@ def translate_string(og_result, args, language):
                 new_text.append(elem[edge:])
             trans_strs = new_text
     else:
-        trans_strs = [[f"{str(timedelta(seconds=round(d['start'])))}: ", d['text']] for d in og_result['segments']]
+        trans_strs = [[str(timedelta(seconds=round(d['start']))), d['text']] for d in og_result['segments']]
 
-    translation = ""
+    translation = {}
     for i in trans_strs:
+        if not i[1]:
+            continue
+        
+        result = translator.translate_text(i[1], target_lang=args['translation_lang'])
 
-        #time.sleep(2)
         if args["timestamps"] == False:
-            result = translator.translate_text(i, target_lang=args['translation_lang'])
             translation += result.text
         else:
-            if not i[1]:
-                continue
-            result = translator.translate_text(i[1], target_lang=args['translation_lang'])
-            translation += (i[0] + result.text + '\n')
-    return translation
+            if args["output_format"] == 'json':
+                translation[i[0]] = result.text
+                return translation
+            elif args["output_format"] == 'csv':
+                if not translation: translation[0] = ""
+                translation[0] += (i[0] + result.text + '\n')
+                return translation[0]
 
 
 
@@ -188,7 +197,11 @@ def process_file(file_path, args, model):
     print(f"OG LANG: {og_lang}, OG LANG RESULT: {og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']}")
 
     if args["translation_lang"] == og_lang:
-        translation_result = og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']
+        print("translation language is same as original language.")
+        if args['timestamps'] == False:
+            translation_result = og_result['text']
+        else:
+            translation_result = og_result['timestamp_og_text']
     else:
         translation_result = translate_string(og_result, args, og_lang)
 
@@ -196,7 +209,7 @@ def process_file(file_path, args, model):
     print(f"TRANS LANG: {trans_lang}, TRANS RESULT: {translation_result}")
 
     og_result = og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']
-    df_row = format_data(file_path, trans_lang, og_result, og_lang, translation_result)
-    return df_row
+    data = format_data(args, file_path, trans_lang, og_result, og_lang, translation_result)
+    return [data]
     
 
