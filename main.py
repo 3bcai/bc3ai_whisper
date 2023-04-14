@@ -16,6 +16,7 @@ DEEPL_KEY = os.getenv("DEEPL_KEY")
 translator = deepl.Translator(DEEPL_KEY)
 
 
+
 def arg_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements")
@@ -28,11 +29,11 @@ def arg_parser():
     parser.add_argument('--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
     parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
     
-
     args = parser.parse_args().__dict__
-
     return args
     
+
+
 def BC3AI_transcribe(file_path, model="large-v2", device='cuda', 
                      translation_lang="EN-US", force_og_lang='auto',ultra_off=False, timestamps=True):
     
@@ -50,6 +51,7 @@ def BC3AI_transcribe(file_path, model="large-v2", device='cuda',
 
     result = process_file(file_path, args, model)
     return result[0]
+
 
 
 if __name__ == "__main__":
