@@ -1,11 +1,13 @@
 # transcription
 for transcribing audio
 
+Can run two ways. In the CLI which takes in entire directories or files of video or audio, and creates a csv - or by importing the function BC3AI_transcribe from main.py
 
-Take in a directory or a file,
+csv format:
+- file name | original language | translated language | translated transcription | original transcription
 
-transcribe it, and put results into a csv
 
-csv format
+function use example:
+```from transcription import BC3AI_transcribe
 
-file name | original language | translated language | translated transcription | original transcription
+results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")```
