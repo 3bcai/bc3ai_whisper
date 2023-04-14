@@ -18,6 +18,7 @@ NEED .ENV WITH:
  - DEEPL_KEY
  - DEEPL_API_DOMAIN
 
+
 ALL ARGUEMENTS:
 ```
 "dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements"
@@ -30,6 +31,7 @@ ALL ARGUEMENTS:
 '--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
 '--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
 ```
+
 If using the function you can use them when you call the function. Example:
 ```
 from transcription import BC3AI_transcribe
