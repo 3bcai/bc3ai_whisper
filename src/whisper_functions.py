@@ -12,7 +12,6 @@ DEEPL_KEY = os.getenv("DEEPL_KEY")
 translator = deepl.Translator(DEEPL_KEY)
 
 
-
 def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
     '''
     THIS WILL CHANGE TO FORMAT INTO CSV FORMAT
@@ -30,7 +29,7 @@ def format_data(file_path, trans_lang, og_result, og_lang, translation_result):
 
 
 def detect_language(audio_file_path, args, model):
-
+    print("detecting language...")
     audio_file = mp.AudioFileClip(audio_file_path)
 
     if args["ultra_off"] == True or audio_file.duration < 30:
@@ -108,7 +107,36 @@ def transcribe_file(file, args, model):
     options = {}
     options['language'] = og_lang
 
-    result = whisper.transcribe(model, audio_file, verbose=False, **options)
+    # SPLIT AUDIO 
+    mp_audio_file = mp.AudioFileClip(audio_file)
+    os.makedirs('temp_audio', exist_ok=True)
+    n=90
+    i = 0
+    j = n
+    result = {'text': '', 'segments': [], 'language': []}
+    if mp_audio_file.duration < n:
+        result = whisper.transcribe(model, mp_audio_file, verbose=False, **options)
+    else:
+        while j <= mp_audio_file.duration:
+            clips = mp_audio_file.subclip(t_start=i, t_end=j)
+            clip_path = f'temp_audio/{i}_{j}.wav'
+            clips.write_audiofile(clip_path, logger=None)
+
+            clip_trans = whisper.transcribe(model, clip_path, verbose=False, **options)
+
+            if not clip_trans['text'] or clip_trans['text'] == "...":
+                pass
+            else:
+                result['text'] += ' ' + clip_trans['text']
+                
+                for seg in clip_trans['segments']:
+                    seg['start'] += i
+                    result['segments'].append(seg)
+                    result['language'].append(clip_trans['language'])
+
+            i += n
+            j += n
+            os.remove(clip_path)
 
     if args["timestamps"] == True:
         result['timestamp_og_text'] = " ". join([f"{str(timedelta(seconds=round(d['start'])))}: {d['text']}\n" for d in result['segments'] if d['text']])
@@ -150,7 +178,7 @@ def translate_string(og_result, args, language):
             if not i[1]:
                 continue
             result = translator.translate_text(i[1], target_lang=args['translation_lang'])
-            translation += (i[0] + result.text + '\n')
+            translation += (i[0] + ': ', result.text + '\n')
     return translation
 
 

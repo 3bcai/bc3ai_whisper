@@ -25,6 +25,7 @@ def arg_parser():
     parser.add_argument("--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
     parser.add_argument("--ultra-off", action='store_true',help="Use this arg to use the faster translation")
     parser.add_argument('--timestamps',action='store_true',help="output timestamps in the resulting csv")
+    parser.add_argument('--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
     parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
     
 
