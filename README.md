@@ -20,15 +20,15 @@ NEED .ENV WITH:
 
 ALL ARGUEMENTS:
 ```
-- "dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements"
- - "--model", default="large-v2", help="name of the Whisper model to use"
- - "--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference"
- - "--translation-lang", default="EN-US", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
- - "--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
- - "--ultra-off", action='store_true',help="Use this arg to use the faster translation")
- - '--timestamps',action='store_true',help="output timestamps in the resulting csv")
- - '--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
- - '--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
+"dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements"
+"--model", default="large-v2", help="name of the Whisper model to use"
+"--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference"
+"--translation-lang", default="EN-US", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
+"--force-og-lang", default="auto", help="override Whispers auto detection of language with a given shorthand lang representation. Ex: en")
+"--ultra-off", action='store_true',help="Use this arg to use the faster translation")
+'--timestamps',action='store_true',help="output timestamps in the resulting csv")
+'--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
+'--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
 ```
 If using the function you can use them when you call the function. Example:
 ```
