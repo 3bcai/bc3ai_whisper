@@ -196,7 +196,7 @@ def process_file(file_path, args, model):
     og_result, og_lang = transcribe_file(file_path, args, model)
     print(f"OG LANG: {og_lang}, OG LANG RESULT: {og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']}")
 
-    if args["translation_lang"] == og_lang:
+    if args["translation_lang"] == og_lang or og_lang in ['en', 'EN-US', 'EN'] and args["translation_lang"] in ['en', 'EN-US', 'EN']:
         print("translation language is same as original language.")
         if args['timestamps'] == False:
             translation_result = og_result['text']
