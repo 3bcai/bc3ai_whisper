@@ -128,4 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-output/
+output
+*.csv
+*.json
+*.wav
+*.mp3
+temp_audio
+notebooks

@@ -165,7 +165,7 @@ def translate_string(og_result, args, language):
                 new_text.append(elem[edge:])
             trans_strs = new_text
     else:
-        trans_strs = [[str(timedelta(seconds=round(d['start']))), d['text']] for d in og_result['segments']]
+        trans_strs = [[f"{str(timedelta(seconds=round(d['start'])))}: ", d['text']] for d in og_result['segments']]
 
     translation = ""
     for i in trans_strs:
@@ -178,7 +178,7 @@ def translate_string(og_result, args, language):
             if not i[1]:
                 continue
             result = translator.translate_text(i[1], target_lang=args['translation_lang'])
-            translation += (i[0] + ': ', result.text + '\n')
+            translation += (i[0] + result.text + '\n')
     return translation
 
 
