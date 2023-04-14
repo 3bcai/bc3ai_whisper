@@ -13,3 +13,7 @@ from transcription import BC3AI_transcribe
 
 results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")
 ```
+
+NEED .ENV WITH:
+ - DEEPL_KEY
+ - DEEPL_API_DOMAIN
