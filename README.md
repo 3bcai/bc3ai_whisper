@@ -8,6 +8,8 @@ csv format:
 
 
 function use example:
-```from transcription import BC3AI_transcribe
+```
+from transcription import BC3AI_transcribe
 
-results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")```
+results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")
+```
