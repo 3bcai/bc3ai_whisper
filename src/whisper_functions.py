@@ -4,8 +4,6 @@ import mimetypes
 import os
 import moviepy.editor as mp
 from datetime import timedelta
-import json
-import time
 from dotenv import load_dotenv
 load_dotenv()
 DEEPL_KEY = os.getenv("DEEPL_KEY")

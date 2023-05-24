@@ -1,10 +1,5 @@
-import argparse
+
 import os
-import torch
-from datetime import datetime
-import pandas as pd
-import json
-import sys
 import mimetypes
 import whisper
 import deepl
