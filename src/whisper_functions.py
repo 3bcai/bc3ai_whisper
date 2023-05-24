@@ -78,12 +78,15 @@ def detect_language(audio_file_path, args, model):
 def transcribe_file(file, args, model):
     """takes in a audio or video file, returns a og_lang transcription string, and the og_lang"""
     mimetypes.init()
+
     print(f"starting transcription of {file}")
     if mimetypes.guess_type(file)[0].split('/')[0] in ['audio']:
         audio_file = file
     elif mimetypes.guess_type(file)[0].split('/')[0] in ['video']:
+
         audio_file = os.path.basename(file)
         audio_file = f"{os.path.splitext(audio_file)[0]}.wav"
+
         try:
             clip = mp.VideoFileClip(file)
         except Exception as e:
@@ -94,7 +97,8 @@ def transcribe_file(file, args, model):
         if clip.audio is not None:
             clip.audio.write_audiofile(audio_file, logger=None)
         else:
-            result, og_lang = "", ""
+            print("VIDEO HAS NO AUDIO")
+            result, og_lang = "VIDEO HAS NO AUDIO", "VIDEO HAS NO AUDIO"
             return result, og_lang
     else:
         #ERROR. NO NON VIDEO OR AUDIO SHOULD HAVE MADE IT HERE.
@@ -193,7 +197,15 @@ def translate_string(og_result, args, language):
 
 
 def process_file(file_path, args, model):
+
     og_result, og_lang = transcribe_file(file_path, args, model)
+
+    if "VIDEO HAS NO AUDIO" in og_result:
+        return {"ADVISORY": "VIDEO HAS NO AUDIO"}
+    
+    if "CORRUPT VIDEO FILE" in og_result:
+        return {"ERROR": "VIDEO CORRUPT WHEN VIDEO WAS LOADED IN TRANSCRIBE"}
+    
     print(f"OG LANG: {og_lang}, OG LANG RESULT: {og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']}")
 
     if args["translation_lang"] == og_lang or og_lang in ['en', 'EN-US', 'EN'] and args["translation_lang"] in ['en', 'EN-US', 'EN']:
@@ -210,6 +222,6 @@ def process_file(file_path, args, model):
 
     og_result = og_result['text'] if args['timestamps'] == False else og_result['timestamp_og_text']
     data = format_data(args, file_path, trans_lang, og_result, og_lang, translation_result)
-    return [data]
+    return data
     
 
