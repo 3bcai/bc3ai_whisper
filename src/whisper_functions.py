@@ -40,7 +40,7 @@ def detect_language(audio_file_path, args, model):
         
     else:
         os.makedirs('temp_audio', exist_ok=True)
-        n=30
+        n=90
         i = 0
         j = n
         master_probs = {}
@@ -114,14 +114,19 @@ def transcribe_file(file, args, model):
     # SPLIT AUDIO 
     mp_audio_file = mp.AudioFileClip(audio_file)
     os.makedirs('temp_audio', exist_ok=True)
-    n=90
+    n=30
     i = 0
     j = n
     result = {'text': '', 'segments': [], 'language': []}
     if mp_audio_file.duration < n:
         result = whisper.transcribe(model, audio_file, verbose=False, **options)
     else:
-        while j <= mp_audio_file.duration:
+        end = False
+        while True:
+            if j >= mp_audio_file.duration:
+                j = mp_audio_file.duration
+                end = True
+
             clips = mp_audio_file.subclip(t_start=i, t_end=j)
             clip_path = f'temp_audio/{i}_{j}.wav'
             clips.write_audiofile(clip_path, logger=None)
@@ -141,6 +146,8 @@ def transcribe_file(file, args, model):
             i += n
             j += n
             os.remove(clip_path)
+            if end == True:
+                break
 
     if args["timestamps"] == True:
         if args["output_format"] == 'json':

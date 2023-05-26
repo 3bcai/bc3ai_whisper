@@ -19,7 +19,7 @@ translator = deepl.Translator(DEEPL_KEY)
 
 def arg_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("dir", type=str, help="path to a directory of videos, to a audio or video file, or to a output folder to continue from. If continuation, do not feed any other arguements")
+    parser.add_argument("dir", type=str, help="path to a directory of videos, to a audio or video file, a azure blob connection string, or to a output folder to continue from. If continuation, do not feed any other arguements")
     parser.add_argument("--model", default="large-v2", help="name of the Whisper model to use")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
     parser.add_argument("--translation-lang", default="EN-US", help=f"language to translate to. must be one of the following: \n {[lang.code for lang in translator.get_target_languages()]}", choices=[lang.code for lang in translator.get_target_languages()])
@@ -28,6 +28,7 @@ def arg_parser():
     parser.add_argument('--timestamps',action='store_true',help="output timestamps in the resulting csv")
     parser.add_argument('--confidence-scores',action='store_true',help="output confidence scores in the resulting csv")
     parser.add_argument('--output-format', nargs='+',choices=["csv", "json"], default="csv")
+    parser.add_argument('--batch-service-blob-container-name',default="",help="activates batch service protocol, also need connection string fed to dir")
     
     args = parser.parse_args().__dict__
     return args
@@ -52,6 +53,28 @@ if __name__ == "__main__":
         with open(f'{output_dir}/args.json') as user_file:
             args = json.load(user_file)
         print(f"Continuing generation of {os.path.basename(args['dir'])}")
+
+
+
+    #if dir is a connection string to Azure
+    elif args['batch_service_blob_container_name']:
+        from azure.storage.blob import BlobClient
+        print("ACTIVATING AZURE BATCH SERVICE PROTOCOL")
+
+        # Define parameters
+        connectionString = args['dir']
+        containerName = args["batch_service_blob_container_name"]
+        outputBlobName	= "output.csv"
+
+
+        blob = BlobClient.from_connection_string(conn_str=connectionString, container_name=containerName, blob_name=outputBlobName)
+
+        with open('input_files/input.json', 'r') as fh:
+            jd1 = json.load(fh)
+        pass
+
+
+
     else:
         print("Creating new output...")
         assert args['model'] in whisper.available_models()
@@ -86,4 +109,4 @@ if __name__ == "__main__":
 
     for file in files:
             
-        pd.DataFrame(process_file(file, args, model)).to_csv(f'{output_dir}/audio_transcriptions.csv', mode='a', header=False)
+        pd.DataFrame([process_file(file, args, model)]).to_csv(f'{output_dir}/audio_transcriptions.csv', mode='a', header=False)
