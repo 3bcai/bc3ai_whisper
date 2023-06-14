@@ -3,6 +3,7 @@ import deepl
 import mimetypes
 import os
 import moviepy.editor as mp
+from moviepy.editor import *
 from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
@@ -126,11 +127,9 @@ def transcribe_file(file, args, model):
             if j >= mp_audio_file.duration:
                 j = mp_audio_file.duration
                 end = True
-
-            clips = mp_audio_file.subclip(t_start=i, t_end=j)
+            clips = mp_audio_file.subclip(i,j)
             clip_path = f'temp_audio/{i}_{j}.wav'
             clips.write_audiofile(clip_path, logger=None)
-
             clip_trans = whisper.transcribe(model, clip_path, verbose=False, **options)
 
             if not clip_trans['text'] or clip_trans['text'] == "...":
@@ -142,7 +141,7 @@ def transcribe_file(file, args, model):
                     seg['start'] += i
                     result['segments'].append(seg)
                     result['language'].append(clip_trans['language'])
-
+            
             i += n
             j += n
             os.remove(clip_path)
