@@ -46,22 +46,31 @@ def detect_language(audio_file_path, args, model):
         j = n
         master_probs = {}
         
-        while j <= audio_file.duration:
-            clips = audio_file.subclip(t_start=i, t_end=j)
-            clip_path = f'temp_audio/{i}_{j}.wav'
-            clips.write_audiofile(clip_path, logger=None)
+        if j <= audio_file.duration:
+            while j <= audio_file.duration:
+                clips = audio_file.subclip(t_start=i, t_end=j)
+                clip_path = f'temp_audio/{i}_{j}.wav'
+                clips.write_audiofile(clip_path, logger=None)
 
-            audio = whisper.load_audio(clip_path)
+                audio = whisper.load_audio(clip_path)
+                audio = whisper.pad_or_trim(audio)
+                mel = whisper.log_mel_spectrogram(audio).to(model.device)
+                _, probs = model.detect_language(mel)
+                if not master_probs:
+                    master_probs = probs
+                master_probs = {k: master_probs.get(k, 0) + probs.get(k, 0) for k in set(master_probs) | set(probs)}
+
+                i += n
+                j += n
+                os.remove(clip_path)
+        else:
+            audio = whisper.load_audio(audio_file_path)
             audio = whisper.pad_or_trim(audio)
             mel = whisper.log_mel_spectrogram(audio).to(model.device)
             _, probs = model.detect_language(mel)
             if not master_probs:
                 master_probs = probs
             master_probs = {k: master_probs.get(k, 0) + probs.get(k, 0) for k in set(master_probs) | set(probs)}
-
-            i += n
-            j += n
-            os.remove(clip_path)
 
 
         language = max(master_probs, key=master_probs.get)
