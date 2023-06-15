@@ -16,16 +16,26 @@ csv format:
 - file name | original language | translated language | translated transcription | original transcription
 
 
-function use example:
+## Examples:
+
+cli main use example from root dir:
+```
+python main.py path/to/dir/of/videos/or/audio --timestamps --force-og-lang EN
+```
+If using the function you can use them when you call the function. Example:
 ```
 from bc3ai_whisper import BC3AI_transcribe
 
-results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")
+results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4", force_og_lang="ZH")
 ```
+## Install
+ - pip install requirements.txt
 
-NEED .ENV WITH:
- - DEEPL_KEY
- - DEEPL_API_DOMAIN
+## Requirements
+ - Python 3.9 (Does not work with 3.11 and above for now because of Whisper limitations)
+ - NEED .ENV WITH:
+   - DEEPL_KEY
+   - DEEPL_API_DOMAIN
 
 
 ALL ARGUEMENTS:
@@ -41,9 +51,5 @@ ALL ARGUEMENTS:
 '--output-format', nargs='+',choices=["csv", "json"], default=["csv, json"])
 ```
 
-If using the function you can use them when you call the function. Example:
-```
-from transcription import BC3AI_transcribe
 
-results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4", force_og_lang="ZH")
-```
+
