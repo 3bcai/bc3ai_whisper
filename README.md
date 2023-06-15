@@ -1,5 +1,14 @@
 # transcription
-for transcribing audio
+for transcribing directories or files of audio or video. 
+
+## Differences between bc3ai_whisper and normal whisper
+
+ - Addresses the main shortcomings of raw Whisper usage. Splits audio into 30 second clips (can be changed by changing "n" variable) to prevent model hallucinations ruining a transcript.
+ - When translating language, scans the entire clip and takes average prediction to determine language instead of only first 30 seconds like normal Whisper.
+ - Works on entire directories of audio or video.
+ - Outputs with checkpoints to a output folder containing cleaned results in csv or JSON format.
+ - Can be imported as a function or ran in CLI
+ - Utilizes DeepL for much higher quality translations, instead of Whispers subpar translator. 
 
 Can run two ways. In the CLI which takes in entire directories or files of video or audio, and creates a csv - or by importing the function BC3AI_transcribe from main.py
 
@@ -9,7 +18,7 @@ csv format:
 
 function use example:
 ```
-from transcription import BC3AI_transcribe
+from bc3ai_whisper import BC3AI_transcribe
 
 results_dict = BC3AI_transcribe("path/to/audio/or/video_file.mp4")
 ```
